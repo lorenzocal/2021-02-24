@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import it.polito.tdp.PremierLeague.model.Action;
 import it.polito.tdp.PremierLeague.model.Match;
@@ -103,6 +104,7 @@ public class PremierLeagueDAO {
 
 			}
 			conn.close();
+			Collections.sort(result);
 			return result;
 			
 		} catch (SQLException e) {
@@ -111,4 +113,79 @@ public class PremierLeagueDAO {
 		}
 	}
 	
+	public List<Player> listAllPlayersMatch(Match match){
+		String sql = "SELECT p.* "
+				+ "FROM actions a, players p "
+				+ "WHERE a.PlayerID = p.PlayerID "
+				+ "AND a.MatchID = ?";
+		List<Player> result = new ArrayList<Player>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, match.getMatchID());
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Player player = new Player(res.getInt("PlayerID"), res.getString("Name"));
+				result.add(player);
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public Double getEfficiencyPlayerMatch(Match match, Player player) {
+		String sql = "SELECT (TotalSuccessfulPassesAll + Assists)/TimePlayed AS Efficiency "
+				+ "FROM actions "
+				+ "WHERE MatchID = ? "
+				+ "AND PlayerID = ?";
+		double result = 0;
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, match.getMatchID());
+			st.setInt(2, player.getPlayerID());
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				result = res.getDouble("Efficiency");
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public Integer getTeamPlayerMatch(Match match, Player player) {
+		String sql = "SELECT TeamID "
+				+ "FROM actions "
+				+ "WHERE MatchID = ? "
+				+ "AND PlayerID = ?";
+		Integer result = 0;
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, match.getMatchID());
+			st.setInt(2, player.getPlayerID());
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+				result = res.getInt("TEAMID");
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

@@ -10,6 +10,9 @@ import java.util.ResourceBundle;
 
 import it.polito.tdp.PremierLeague.model.Match;
 import it.polito.tdp.PremierLeague.model.Model;
+import it.polito.tdp.PremierLeague.model.Player;
+import it.polito.tdp.PremierLeague.model.PlayerDelta;
+import it.polito.tdp.PremierLeague.model.Simulatore;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -47,17 +50,44 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-    	
+    	Match match = this.cmbMatch.getValue();
+    	if (match == null) {
+    		this.txtResult.appendText("Non è stato inserito alcun match.\n");
+    	}
+    	else {
+    		this.model.creaGrafo(match);
+    		this.txtResult.appendText("Grafo creato correttamente.\n");
+    		this.txtResult.appendText("Vertici: " + this.model.getGrafo().vertexSet().size() + "\n");
+    		this.txtResult.appendText("Archi: " + this.model.getGrafo().edgeSet().size() + "\n");
+    	}	
     }
 
     @FXML
     void doGiocatoreMigliore(ActionEvent event) {    	
-    	
+    	if (this.model.getGrafo() == null) {
+    		this.txtResult.appendText("Non è stato creato alcun grafo.\n");
+    	}
+    	else {
+    		PlayerDelta bestPlayer = this.model.bestPlayer();
+    		this.txtResult.appendText("Miglior giocatore:\n" + bestPlayer.getPlayer() + " con delta efficienza pari a " + bestPlayer.getDelta() + "\n");
+    		
+    	}
     }
     
     @FXML
     void doSimula(ActionEvent event) {
-
+    	Match match = this.cmbMatch.getValue();
+    	try {
+    		Integer N = Integer.parseInt(this.txtN.getText());
+    		Simulatore simulatore = new Simulatore(model, match, N);
+    		simulatore.inizializza();
+    		simulatore.run();
+    		this.txtResult.appendText(simulatore.risultatoFinale() + "\n");
+    	} catch (NumberFormatException nfe) {
+    		this.txtResult.appendText("Il valore di N inserito non è valido.\n");
+    	} catch (NullPointerException npe) {
+    		this.txtResult.appendText("Non è stato inserito alcun N.\n");
+    	}
     }
 
     @FXML // This method is called by the FXMLLoader when initialization is complete
@@ -73,5 +103,6 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	this.cmbMatch.getItems().setAll(this.model.listAllMatches());
     }
 }
